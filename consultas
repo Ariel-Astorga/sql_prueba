@@ -1,0 +1,58 @@
+--conocer el numero de evaluaciones por curso
+
+select evaluacion.id_evaluacion, evaluacion.curso_id_curso, fecha, curso.nombre_curso
+from evaluacion
+inner join curso on (evaluacion.curso_id_curso = id_curso);
+
+-- conocer los cursos sien evaluaciones
+select evaluacion.id_evaluacion, id_curso, curso.nombre_curso, count(evaluacion.curso_id_curso)
+from curso
+LEFT join evaluacion on evaluacion.curso_id_curso = curso.id_curso
+group by 
+curso.id_curso, curso.nombre_curso, evaluacion.id_evaluacion, id_curso
+having 
+Count(evaluacion.curso_id_curso)=0;
+
+--determinar las evaluaciones con deficiencia
+
+
+
+
+
+
+--determinar cuantos alumnos hay por curso
+select curso.id_curso, curso.nombre_curso, count(alumno.curso_id_curso)
+from curso
+inner join alumno on (curso.id_curso = alumno.curso_id_curso)
+group by
+curso.id_curso, curso.nombre_curso;
+
+
+--determinar el puntaje no normalizado 
+create or replace VIEW conteo_respuestas as
+select alumno.id_alumno, alumno.curso_id_curso, (count(case when respuesta.puntaje = 5 then 1 end) - count(case when respuesta.puntaje = 0 then 1 end))/4 puntaje_no_normalizado
+from alumno
+inner join almacen_resp on (alumno.id_alumno = almacen_resp.alumno_id_alumno)
+inner join respuesta on (almacen_resp.respuesta_id_respuesta = respuesta.id_respuesta)
+group by 
+alumno.id_alumno,
+alumno.curso_id_curso;
+
+SELECT
+    *
+FROM conteo_respuestas;
+
+
+--puntaje normalizado
+create or replace view notas as
+select conteo_respuestas.id_alumno, conteo_respuestas.curso_id_curso, sum(conteo_respuestas.puntaje_no_normalizado * 0.7) as nota
+from conteo_respuestas
+group by
+id_alumno, curso_id_curso, puntaje_no_normalizado;
+
+
+SELECT
+    *
+FROM notas
+
+
